@@ -44,6 +44,7 @@
       webhookUrl: "https://${DOMAIN}/telegram-webhook",
       webhookPath: "/telegram-webhook",
       webhookHost: "0.0.0.0",   // bind to all interfaces inside container
+      webhookSecret: "${OPENCLAW_GATEWAY_TOKEN}",
 
       // Security: ONLY the CEO can interact with the bot.
       // dmPolicy "allowlist" = drop all DMs not in allowFrom.
