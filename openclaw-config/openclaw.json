@@ -19,9 +19,6 @@
       mode: "token",
       token: "${OPENCLAW_GATEWAY_TOKEN}",
     },
-    reload: {
-      mode: "graceful",
-    },
   },
 
   // ------------------------------------------------------------
@@ -47,15 +44,11 @@
       webhookUrl: "https://${DOMAIN}/telegram-webhook",
       webhookPath: "/telegram-webhook",
       webhookHost: "0.0.0.0",   // bind to all interfaces inside container
-      webhookPort: 8787,
 
       // Security: ONLY the CEO can interact with the bot.
       // dmPolicy "allowlist" = drop all DMs not in allowFrom.
       dmPolicy: "allowlist",
       allowFrom: ["${CEO_TELEGRAM_ID}"],
-
-      // Streaming: partial = send updates as they arrive (faster UX).
-      streaming: "partial",
 
       historyLimit: 20,
       mediaMaxMb: 10,
@@ -91,16 +84,6 @@
       model: {
         primary: "${LLM_FLASH_MODEL}",
         fallbacks: [],
-      },
-      tools: {
-        // Enable sessions tools so Chief Secretary can message team agents.
-        allow: ["sessions_list", "sessions_history", "sessions_send", "read", "write"],
-        deny: ["browser", "canvas"],
-        loopDetection: {
-          enabled: true,
-          warningThreshold: 5,
-          criticalThreshold: 10,
-        },
       },
       sandbox: {
         mode: "off",
@@ -230,7 +213,7 @@
   // ------------------------------------------------------------
   messages: {
     ackReaction: "👀",
-    ackReactionScope: "always",
+    ackReactionScope: "all",
     queue: {
       mode: "collect",
       debounceMs: 800,
