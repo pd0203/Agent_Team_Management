@@ -1,0 +1,240 @@
+// ============================================================
+// OpenClaw Configuration — Hyojin Distribution AI Agent Team
+// ~/.openclaw/openclaw.json  (mounted via Docker volume)
+//
+// JSON5 format: comments and trailing commas are allowed.
+// Env vars: use ${VAR_NAME} — resolved from .env / process env.
+// Docs: https://docs.openclaw.ai/gateway/configuration-reference
+// ============================================================
+{
+  // ------------------------------------------------------------
+  // Gateway: bind to LAN so Nginx (same Docker network) can reach it.
+  // Port 18789 = Gateway WebSocket control plane.
+  // NEVER expose 18789 directly to the public internet — Nginx only.
+  // ------------------------------------------------------------
+  gateway: {
+    port: 18789,
+    bind: "lan",
+    auth: {
+      mode: "token",
+      token: "${OPENCLAW_GATEWAY_TOKEN}",
+    },
+    reload: {
+      mode: "graceful",
+    },
+  },
+
+  // ------------------------------------------------------------
+  // Logging — write to a shared volume so BudgetGuard can parse it.
+  // ------------------------------------------------------------
+  logging: {
+    level: "info",
+    file: "/shared/logs/openclaw.log",
+    consoleLevel: "info",
+    consoleStyle: "json",
+    redactSensitive: "tools",
+  },
+
+  // ------------------------------------------------------------
+  // Channels — Telegram only (CEO ↔ Chief Secretary 1:1)
+  // ------------------------------------------------------------
+  channels: {
+    telegram: {
+      enabled: true,
+      botToken: "${TELEGRAM_BOT_TOKEN}",
+
+      // Webhook mode: Nginx proxies HTTPS → OpenClaw internal listener.
+      webhookUrl: "https://${DOMAIN}/telegram-webhook",
+      webhookPath: "/telegram-webhook",
+      webhookHost: "0.0.0.0",   // bind to all interfaces inside container
+      webhookPort: 8787,
+
+      // Security: ONLY the CEO can interact with the bot.
+      // dmPolicy "allowlist" = drop all DMs not in allowFrom.
+      dmPolicy: "allowlist",
+      allowFrom: ["${CEO_TELEGRAM_ID}"],
+
+      // Streaming: partial = send updates as they arrive (faster UX).
+      streaming: "partial",
+
+      historyLimit: 20,
+      mediaMaxMb: 10,
+    },
+  },
+
+  // ------------------------------------------------------------
+  // Bindings: route Telegram → Chief Secretary agent only.
+  // Team agents are internal — they receive tasks via sessions_send.
+  // ------------------------------------------------------------
+  bindings: [
+    {
+      agentId: "chief-secretary",
+      match: { channel: "telegram" },
+    },
+  ],
+
+  // ------------------------------------------------------------
+  // Agents: 1 Chief Secretary + 5 Team Agents
+  // Each agent has its own workspace (separate SOUL.md per agent).
+  //
+  // Model assignments (all env-var driven for easy swapping):
+  //   Chief Secretary : flash  (efficient routing + daily comms)
+  //   Planning PM     : pro    (complex strategy/research)
+  //   Marketer        : flash  (ad data is mostly structured)
+  //   Designer        : flash  (visual guidance / creative briefs)
+  //   Finance Manager : pro    (accurate financial analysis)
+  //   CS Manager      : flash  (templated customer responses)
+  // ------------------------------------------------------------
+  agents: {
+    defaults: {
+      // Default Flash model — overridden per-agent below.
+      model: {
+        primary: "${LLM_FLASH_MODEL}",
+        fallbacks: [],
+      },
+      tools: {
+        // Enable sessions tools so Chief Secretary can message team agents.
+        allow: ["sessions_list", "sessions_history", "sessions_send", "read", "write"],
+        deny: ["browser", "canvas"],
+        loopDetection: {
+          enabled: true,
+          warningThreshold: 5,
+          criticalThreshold: 10,
+        },
+      },
+      sandbox: {
+        mode: "off",
+      },
+    },
+
+    list: [
+      // --------------------------------------------------------
+      // 1. Chief Secretary (비서실장) — default agent, faces the CEO.
+      // --------------------------------------------------------
+      {
+        id: "chief-secretary",
+        default: true,
+        name: "비서실장",
+        workspace: "/home/node/.openclaw/workspace/chief-secretary",
+        model: {
+          primary: "${LLM_FLASH_MODEL}",
+          fallbacks: [],
+        },
+        identity: {
+          name: "비서실장",
+          emoji: "🤵",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 2. Planning PM (기획PM)
+      // --------------------------------------------------------
+      {
+        id: "planning-pm",
+        name: "기획PM",
+        workspace: "/home/node/.openclaw/workspace/planning-pm",
+        model: {
+          primary: "${LLM_PRO_MODEL}",
+          fallbacks: ["${LLM_FLASH_MODEL}"],
+        },
+        identity: {
+          name: "기획PM",
+          emoji: "📋",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 3. Marketer (마케터)
+      // --------------------------------------------------------
+      {
+        id: "marketer",
+        name: "마케터",
+        workspace: "/home/node/.openclaw/workspace/marketer",
+        model: {
+          primary: "${LLM_FLASH_MODEL}",
+          fallbacks: [],
+        },
+        identity: {
+          name: "마케터",
+          emoji: "📣",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 4. Designer (디자이너)
+      // --------------------------------------------------------
+      {
+        id: "designer",
+        name: "디자이너",
+        workspace: "/home/node/.openclaw/workspace/designer",
+        model: {
+          primary: "${LLM_FLASH_MODEL}",
+          fallbacks: [],
+        },
+        identity: {
+          name: "디자이너",
+          emoji: "🎨",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 5. Finance Manager (재무담당)
+      // --------------------------------------------------------
+      {
+        id: "finance-manager",
+        name: "재무담당",
+        workspace: "/home/node/.openclaw/workspace/finance-manager",
+        model: {
+          primary: "${LLM_PRO_MODEL}",
+          fallbacks: ["${LLM_FLASH_MODEL}"],
+        },
+        identity: {
+          name: "재무담당",
+          emoji: "💰",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 6. CS Manager (CS담당)
+      // --------------------------------------------------------
+      {
+        id: "cs-manager",
+        name: "CS담당",
+        workspace: "/home/node/.openclaw/workspace/cs-manager",
+        model: {
+          primary: "${LLM_FLASH_MODEL}",
+          fallbacks: [],
+        },
+        identity: {
+          name: "CS담당",
+          emoji: "🎧",
+        },
+      },
+    ],
+  },
+
+  // ------------------------------------------------------------
+  // Session management — per-sender DM scope, daily reset at 3am KST
+  // ------------------------------------------------------------
+  session: {
+    scope: "per-sender",
+    dmScope: "per-channel-peer",
+    reset: {
+      mode: "daily",
+      atHour: 3,
+    },
+  },
+
+  // ------------------------------------------------------------
+  // Messages — Korean UX polish
+  // ------------------------------------------------------------
+  messages: {
+    ackReaction: "👀",
+    ackReactionScope: "always",
+    queue: {
+      mode: "collect",
+      debounceMs: 800,
+      cap: 10,
+    },
+  },
+}
