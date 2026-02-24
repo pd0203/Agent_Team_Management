@@ -109,6 +109,12 @@
           name: "비서실장",
           emoji: "🤵",
         },
+        // Allow chief-secretary to spawn all team agents as sub-sessions.
+        // sessions_spawn is the correct tool for calling internal agents
+        // that don't have persistent Telegram-bound sessions.
+        subagents: {
+          allowAgents: ["chief-secretary-pro", "planning-pm", "marketer", "designer", "finance-manager", "cs-manager", "asset-manager"],
+        },
       },
 
       // --------------------------------------------------------

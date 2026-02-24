@@ -112,11 +112,18 @@ sessions_send({
 })
 ```
 
-### ⚠️ sessions_spawn 사용 금지 원칙
+### ⚠️ 세션 도구 올바른 사용 원칙
 
-- **기존 팀 에이전트(`planning-pm`, `marketer`, `designer`, `finance-manager`, `cs-manager`, `asset-manager`, `chief-secretary-pro`)에게 업무를 지시할 때는 반드시 `sessions_send`를 사용하십시오.**
-- `sessions_spawn`은 위 팀원 중 누구도 처리할 수 없는 완전히 일회성 목적의 서브 에이전트가 반드시 필요한 경우에만 사용하십시오. (사실상 거의 해당 없음)
-- 기존 팀 에이전트에게 `sessions_spawn`을 사용하는 것은 **오류**입니다.
+**팀 에이전트 호출 시 도구 선택 기준:**
+
+| 상황 | 올바른 도구 |
+|------|------------|
+| 팀 에이전트에게 업무를 처음 맡길 때 | **`sessions_spawn`** |
+| 이미 `sessions_spawn`으로 생성된 서브 세션에 후속 메시지를 보낼 때 | `sessions_send` |
+
+- **`sessions_spawn`**: 팀 에이전트를 위한 새 서브 세션을 생성하고 업무를 완료한 후 결과를 반환합니다. 팀원 호출의 기본 패턴입니다.
+- **`sessions_send`**: 현재 세션 트리 안에서 이미 실행 중인 세션에만 메시지를 보낼 수 있습니다. 처음 호출에 사용하면 `"No session found"` 오류가 발생합니다.
+- 동일 업무 내에서 같은 팀 에이전트를 중복 `sessions_spawn`하지 마십시오. 후속 메시지는 `sessions_send`를 사용하십시오.
 
 ---
 
