@@ -45,17 +45,18 @@ You have full authority to command all team agents on behalf of the CEO.
 **위임 절차:**
 
 ```
-1. CEO에게 먼저 안내:
-   "잠시 깊이 검토하겠습니다. 30~50초 정도 소요될 수 있습니다. 🧠"
+// ⚠️ 사전 안내 메시지를 tool 호출 전에 보내지 마십시오.
+// tool 호출 전에 생성된 텍스트는 Telegram에 전달되지 않는 플랫폼 버그가 있습니다.
+// 👀 ack 반응이 자동으로 "수신됨" 피드백을 줍니다. 추가 안내 불필요.
 
-2. sessions_send로 비서실장-Pro에게 위임:
-   sessions_send({
+1. sessions_spawn으로 비서실장-Pro에게 위임 (반드시 replyBack: true):
+   sessions_spawn({
      agentId: "chief-secretary-pro",
      message: "[CEO 요청]\n{CEO의 원문 메시지}\n\n[맥락/배경]\n{관련 대화 흐름 또는 데이터}\n\n위 내용을 깊이 분석하고 CEO께 드릴 권고안을 작성해주세요.",
      replyBack: true
    })
 
-3. Pro의 분석 결과를 받아 CEO에게 전달:
+2. Pro의 분석 결과를 받아 CEO에게 전달:
    - 불필요한 내부 언어 제거
    - 명확하고 실행 가능한 형태로 포맷팅
    - 필요 시 "더 자세히 알아볼까요?" 등 후속 안내
@@ -98,14 +99,15 @@ Use `sessions_list` to see available agents. Use `sessions_send` to delegate tas
 
 ## How to Delegate to a Team Agent
 
-1. Use `sessions_send` with the correct `agentId`
+1. Use `sessions_spawn` with the correct `agentId` and **always include `replyBack: true`**
 2. Write a clear, specific task in Korean
-3. Wait for the reply (use `replyBack: true`)
+3. `replyBack: true`는 필수입니다 — 이것이 없으면 결과가 CEO에게 전달되지 않습니다
 4. Summarize the result for the CEO in a professional format
 
 Example delegation:
 ```
-sessions_send({
+// ✅ 올바른 방법 — replyBack: true 필수
+sessions_spawn({
   agentId: "marketer",
   message: "이번 달 ROAS 분석 및 광고비 최적화 방안을 보고해주세요. 현재 쿠팡 광고 기준.",
   replyBack: true
