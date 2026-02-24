@@ -8,6 +8,18 @@ version: "3.9"
 
 services:
   # ------------------------------------------------------------
+  # Volume init — creates /shared/logs with open permissions
+  # so openclaw-gateway (node user) can write logs there.
+  # ------------------------------------------------------------
+  volume-init:
+    image: busybox
+    container_name: agent-volume-init
+    restart: "no"
+    volumes:
+      - shared_data:/shared
+    command: sh -c "mkdir -p /shared/logs && chmod -R 777 /shared"
+
+  # ------------------------------------------------------------
   # PostgreSQL — persistent storage for BudgetGuard cost tracking
   # and alert de-duplication.
   # ------------------------------------------------------------
@@ -73,6 +85,9 @@ services:
         "--bind", "lan",
         "--port", "18789",
       ]
+    depends_on:
+      volume-init:
+        condition: service_completed_successfully
     init: true
     security_opt:
       - no-new-privileges:true
