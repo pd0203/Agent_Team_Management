@@ -41,12 +41,6 @@
       enabled: true,
       botToken: "${TELEGRAM_BOT_TOKEN}",
 
-      // Webhook mode: Nginx proxies HTTPS → OpenClaw internal listener.
-      webhookUrl: "https://${DOMAIN}/telegram-webhook",
-      webhookPath: "/telegram-webhook",
-      webhookHost: "0.0.0.0",   // bind to all interfaces inside container
-      webhookSecret: "${OPENCLAW_GATEWAY_TOKEN}",
-
       // Security: ONLY the CEO can interact with the bot.
       // dmPolicy "allowlist" = drop all DMs not in allowFrom.
       dmPolicy: "allowlist",
@@ -69,16 +63,22 @@
   ],
 
   // ------------------------------------------------------------
-  // Agents: 1 Chief Secretary + 5 Team Agents
+  // Agents: 1 Chief Secretary (dual-mode) + 1 Chief Secretary Pro + 6 Team Agents
   // Each agent has its own workspace (separate SOUL.md per agent).
   //
-  // Model assignments (all env-var driven for easy swapping):
-  //   Chief Secretary : flash  (efficient routing + daily comms)
-  //   Planning PM     : pro    (complex strategy/research)
-  //   Marketer        : flash  (ad data is mostly structured)
-  //   Designer        : flash  (visual guidance / creative briefs)
-  //   Finance Manager : pro    (accurate financial analysis)
-  //   CS Manager      : flash  (templated customer responses)
+  // Model assignments:
+  //   Chief Secretary     : flash  (fast routing + daily comms + complexity detection)
+  //   Chief Secretary Pro : pro    (strategic analysis engine — internal only, no Telegram)
+  //   Planning PM         : pro    (complex strategy/research)
+  //   Marketer            : flash  (ad data is mostly structured)
+  //   Designer            : flash  (visual guidance / creative briefs)
+  //   Finance Manager     : pro    (accurate financial analysis)
+  //   CS Manager          : flash  (templated customer responses)
+  //   Asset Manager       : pro    (financial risk — always pro, no flash fallback on analysis)
+  //
+  // Dual-model routing:
+  //   Simple tasks  → chief-secretary (flash) handles directly  [1~3s]
+  //   Complex tasks → chief-secretary detects → routes to chief-secretary-pro (pro) → relays to CEO  [30~55s]
   // ------------------------------------------------------------
   agents: {
     defaults: {
@@ -108,6 +108,25 @@
         identity: {
           name: "비서실장",
           emoji: "🤵",
+        },
+      },
+
+      // --------------------------------------------------------
+      // 1b. Chief Secretary Pro (비서실장-Pro) — Internal strategic analysis engine.
+      // NOT bound to Telegram. Receives tasks from chief-secretary via sessions_send.
+      // Uses Pro model for deep reasoning, strategic judgment, and multi-agent synthesis.
+      // --------------------------------------------------------
+      {
+        id: "chief-secretary-pro",
+        name: "비서실장-Pro",
+        workspace: "/home/node/.openclaw/workspace/chief-secretary-pro",
+        model: {
+          primary: "${LLM_PRO_MODEL}",
+          fallbacks: ["${LLM_FLASH_MODEL}"],
+        },
+        identity: {
+          name: "비서실장-Pro",
+          emoji: "🧠",
         },
       },
 
@@ -195,18 +214,46 @@
           emoji: "🎧",
         },
       },
+
+      // --------------------------------------------------------
+      // 7. Asset Manager (자산관리사) — Internal VIP investment agent.
+      // NOT bound to Telegram. Receives tasks from chief-secretary via sessions_send.
+      // Uses Pro model for financial analysis. Bybit API to be added later by CEO.
+      // --------------------------------------------------------
+      {
+        id: "asset-manager",
+        name: "자산관리사",
+        workspace: "/home/node/.openclaw/workspace/asset-manager",
+        model: {
+          primary: "${LLM_PRO_MODEL}",
+          fallbacks: ["${LLM_FLASH_MODEL}"],
+        },
+        identity: {
+          name: "자산관리사",
+          emoji: "📈",
+        },
+      },
     ],
   },
 
   // ------------------------------------------------------------
-  // Session management — per-sender DM scope, daily reset at 3am KST
+  // Session management — per-sender DM scope, no reset (pairing persists for cron reliability)
+  // historyLimit: 20 in telegram config already caps LLM context per request.
   // ------------------------------------------------------------
   session: {
     scope: "per-sender",
     dmScope: "per-channel-peer",
-    reset: {
-      mode: "daily",
-      atHour: 3,
+  },
+
+  // ------------------------------------------------------------
+  // Tools — disable built-in web_search (Brave-only).
+  // All web searches go through the tavily-search ClawHub skill instead.
+  // ------------------------------------------------------------
+  tools: {
+    web: {
+      search: {
+        enabled: false,
+      },
     },
   },
 

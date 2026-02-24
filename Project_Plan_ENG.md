@@ -144,6 +144,16 @@ All services operate via Docker Compose on a single A1.Flex instance.
 - Design Team: **Designer**
 - Finance Team: **Finance Manager**
 - CS Team: **CS Manager**
+- VIP Investment Team: **Asset Manager (자산관리사)**
+
+### Asset Manager (자산관리사) — Communication Architecture
+- **No direct CEO contact.** All communication flows through Chief Secretary.
+- CEO → Telegram → Chief Secretary → `sessions_send` → Asset Manager
+- Asset Manager → (task complete) → reports to Chief Secretary → Chief Secretary reports to CEO
+- **Crypto exchange:** Bybit (API not connected yet — analysis/advisory only in Phase 1)
+- **Stock trading:** CEO executes manually; Asset Manager provides analysis and recommendations only
+- **Model:** `gemini-3.1-pro` (always — financial risk requires highest accuracy)
+- **Scope:** Crypto market analysis, stock analysis, macro-economy (interest rates, FX, inflation), portfolio advisory
 
 ---
 
@@ -245,19 +255,53 @@ All services operate via Docker Compose on a single A1.Flex instance.
 
 ### 12.2 OpenClaw Patching & Config
 - Use **v2026.1.29+** (Addresses RCE CVE-2026-25253).
-- Do not use `latest` Docker image tag; use fixed digest.
-- `auth: none` must be disabled. Generate strict Gateway Token.
-- Telegram `chat_id` whitelist applied (Drop everything except CEO's ID).
+- `auth: none` must be disabled. Generate strict Gateway Token. ✅ **[Completed — Gateway Token active, device pairing bootstrapped]**
+- Telegram `chat_id` whitelist applied (Drop everything except CEO's ID). ✅ **[Completed]**
 
 ### 12.3 Docker / Network Context
-- Run containers as non-root (UID 1000).
-- Strip all Linux kernel caps (`cap_drop: ALL`).
-- Limit OpenClaw container to 1 CPU core and 512MB RAM if feasible.
+- Run containers as non-root (UID 1000). ✅ **[Completed]**
 - Nginx Firewall: Block all outbound traffic unless directed at Gemini API endpoints.
 
 ### 12.4 Sensitive Keys
 - Provide via environment variables only (`GEMINI_API_KEY`, Telegram Bot Token).
 - NEVER hardcode keys in `.py` or config files. Provide robust `.env` parsing, and ensure `.gitignore` lists `.env`.
+
+---
+
+## 17. Asset Manager — Required APIs & Integration Plan
+
+### 17.1 Phase 1 (Analysis Only — No Trading API Needed Yet)
+
+The Asset Manager operates in advisory-only mode. The following **free-tier APIs** are recommended:
+
+| API | Purpose | Free Tier | Priority |
+|-----|---------|-----------|----------|
+| **CoinGecko API** | Crypto prices, market cap, volume, historical charts | 10,000 calls/month free | ★★★ Essential |
+| **Alpha Vantage** | Stock prices (Korean + US), forex, economic indicators (GDP, CPI, etc.) | 25 requests/day free | ★★★ Essential |
+| **FRED API** (Federal Reserve) | US macro: interest rates, inflation, unemployment, M2 money supply | Unlimited free | ★★★ Essential |
+| **CryptoCompare** | Crypto market data, news, portfolio tracking | 100,000 calls/month free | ★★ Recommended |
+| **Finnhub** | Real-time stock quotes, earnings calendar, news | 60 calls/min free | ★★ Recommended |
+
+### 17.2 Phase 2 (When CEO Provides API Keys — Auto-Trading)
+
+| API | Purpose | Notes |
+|-----|---------|-------|
+| **Bybit API** (Main + Testnet) | Crypto spot/futures trading, balance, order management | CEO to provide `BYBIT_API_KEY` + `BYBIT_SECRET` |
+| **KIS (한국투자증권) API** | Korean stock auto-trading | CEO to provide when ready |
+
+### 17.3 .env Keys to Add (Phase 1)
+
+```bash
+# Asset Manager — Market Data APIs
+COINGECKO_API_KEY=          # Optional (higher rate limit with key)
+ALPHA_VANTAGE_API_KEY=      # ★ Get free at: https://www.alphavantage.co/support/#api-key
+FRED_API_KEY=               # ★ Get free at: https://fred.stlouisfed.org/docs/api/api_key.html
+CRYPTOCOMPARE_API_KEY=      # Optional — https://min-api.cryptocompare.com/
+
+# Asset Manager — Trading APIs (Phase 2 — CEO provides later)
+# BYBIT_API_KEY=
+# BYBIT_SECRET=
+```
 
 ---
 
