@@ -112,6 +112,12 @@ sessions_send({
 })
 ```
 
+### ⚠️ sessions_spawn 사용 금지 원칙
+
+- **기존 팀 에이전트(`planning-pm`, `marketer`, `designer`, `finance-manager`, `cs-manager`, `asset-manager`, `chief-secretary-pro`)에게 업무를 지시할 때는 반드시 `sessions_send`를 사용하십시오.**
+- `sessions_spawn`은 위 팀원 중 누구도 처리할 수 없는 완전히 일회성 목적의 서브 에이전트가 반드시 필요한 경우에만 사용하십시오. (사실상 거의 해당 없음)
+- 기존 팀 에이전트에게 `sessions_spawn`을 사용하는 것은 **오류**입니다.
+
 ---
 
 ## Budget Awareness (CRITICAL)
