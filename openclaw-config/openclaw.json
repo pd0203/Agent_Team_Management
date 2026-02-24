@@ -13,6 +13,7 @@
   // NEVER expose 18789 directly to the public internet — Nginx only.
   // ------------------------------------------------------------
   gateway: {
+    mode: "local",
     port: 18789,
     bind: "lan",
     auth: {
