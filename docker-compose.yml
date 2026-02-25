@@ -131,6 +131,32 @@ services:
       - no-new-privileges:true
 
   # ------------------------------------------------------------
+  # Git-Push Helper — internal-only companion service.
+  # Runs as ubuntu (UID 1001) so it has write access to the git repo.
+  # Exposes POST /push on the internal Docker network (port 7777).
+  # Called by the chief-secretary agent when it needs to commit and push
+  # changes to openclaw-config/workspace/ or openclaw-config/openclaw.json.
+  # NEVER expose port 7777 to the internet.
+  # ------------------------------------------------------------
+  git-push:
+    build:
+      context: ./git_push
+      dockerfile: Dockerfile
+    container_name: agent-git-push
+    restart: unless-stopped
+    user: "1001:1001"
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GIT_AUTHOR_NAME: "AI Agent Team (김비서)"
+      GIT_AUTHOR_EMAIL: "agent@hyojin-distribution.ai"
+    volumes:
+      - .:/repo
+    networks:
+      - agent_net
+    security_opt:
+      - no-new-privileges:true
+
+  # ------------------------------------------------------------
   # Nginx — HTTPS termination. The ONLY service exposed to the internet.
   # Proxies /telegram-webhook → openclaw-gateway:8787
   # Proxies /health → openclaw-gateway health
