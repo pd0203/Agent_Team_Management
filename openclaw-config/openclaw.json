@@ -1,278 +1,212 @@
-// ============================================================
-// OpenClaw Configuration — Hyojin Distribution AI Agent Team
-// ~/.openclaw/openclaw.json  (mounted via Docker volume)
-//
-// JSON5 format: comments and trailing commas are allowed.
-// Env vars: use ${VAR_NAME} — resolved from .env / process env.
-// Docs: https://docs.openclaw.ai/gateway/configuration-reference
-// ============================================================
 {
-  // ------------------------------------------------------------
-  // Gateway: bind to LAN so Nginx (same Docker network) can reach it.
-  // Port 18789 = Gateway WebSocket control plane.
-  // NEVER expose 18789 directly to the public internet — Nginx only.
-  // ------------------------------------------------------------
-  gateway: {
-    mode: "local",
-    port: 18789,
-    bind: "lan",
-    auth: {
-      mode: "token",
-      token: "${OPENCLAW_GATEWAY_TOKEN}",
+  "logging": {
+    "level": "info",
+    "file": "/shared/logs/openclaw.log",
+    "consoleLevel": "info",
+    "consoleStyle": "json",
+    "redactSensitive": "tools"
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "${LLM_FLASH_MODEL}",
+        "fallbacks": []
+      },
+      "sandbox": {
+        "mode": "off"
+      }
     },
+    "list": [
+      {
+        "id": "chief-secretary",
+        "default": true,
+        "name": "비서실장",
+        "workspace": "/home/node/.openclaw/workspace/chief-secretary",
+        "model": {
+          "primary": "${LLM_FLASH_MODEL}",
+          "fallbacks": []
+        },
+        "identity": {
+          "name": "비서실장",
+          "emoji": "🤵"
+        },
+        "subagents": {
+          "allowAgents": [
+            "chief-secretary-pro",
+            "planning-pm",
+            "marketer",
+            "designer",
+            "finance-manager",
+            "cs-manager",
+            "asset-manager"
+          ]
+        }
+      },
+      {
+        "id": "chief-secretary-pro",
+        "name": "비서실장-Pro",
+        "workspace": "/home/node/.openclaw/workspace/chief-secretary-pro",
+        "model": {
+          "primary": "${LLM_PRO_MODEL}",
+          "fallbacks": [
+            "${LLM_FLASH_MODEL}"
+          ]
+        },
+        "identity": {
+          "name": "비서실장-Pro",
+          "emoji": "🧠"
+        }
+      },
+      {
+        "id": "planning-pm",
+        "name": "기획PM",
+        "workspace": "/home/node/.openclaw/workspace/planning-pm",
+        "model": {
+          "primary": "${LLM_PRO_MODEL}",
+          "fallbacks": [
+            "${LLM_FLASH_MODEL}"
+          ]
+        },
+        "identity": {
+          "name": "기획PM",
+          "emoji": "📋"
+        }
+      },
+      {
+        "id": "marketer",
+        "name": "마케터",
+        "workspace": "/home/node/.openclaw/workspace/marketer",
+        "model": {
+          "primary": "${LLM_FLASH_MODEL}",
+          "fallbacks": []
+        },
+        "identity": {
+          "name": "마케터",
+          "emoji": "📣"
+        }
+      },
+      {
+        "id": "designer",
+        "name": "디자이너",
+        "workspace": "/home/node/.openclaw/workspace/designer",
+        "model": {
+          "primary": "${LLM_FLASH_MODEL}",
+          "fallbacks": []
+        },
+        "identity": {
+          "name": "디자이너",
+          "emoji": "🎨"
+        }
+      },
+      {
+        "id": "finance-manager",
+        "name": "재무담당",
+        "workspace": "/home/node/.openclaw/workspace/finance-manager",
+        "model": {
+          "primary": "${LLM_PRO_MODEL}",
+          "fallbacks": [
+            "${LLM_FLASH_MODEL}"
+          ]
+        },
+        "identity": {
+          "name": "재무담당",
+          "emoji": "💰"
+        }
+      },
+      {
+        "id": "cs-manager",
+        "name": "CS담당",
+        "workspace": "/home/node/.openclaw/workspace/cs-manager",
+        "model": {
+          "primary": "${LLM_FLASH_MODEL}",
+          "fallbacks": []
+        },
+        "identity": {
+          "name": "CS담당",
+          "emoji": "🎧"
+        }
+      },
+      {
+        "id": "asset-manager",
+        "name": "자산관리사",
+        "workspace": "/home/node/.openclaw/workspace/asset-manager",
+        "model": {
+          "primary": "${LLM_PRO_MODEL}",
+          "fallbacks": [
+            "${LLM_FLASH_MODEL}"
+          ]
+        },
+        "identity": {
+          "name": "자산관리사",
+          "emoji": "📈"
+        }
+      }
+    ]
   },
-
-  // ------------------------------------------------------------
-  // Logging — write to a shared volume so BudgetGuard can parse it.
-  // ------------------------------------------------------------
-  logging: {
-    level: "info",
-    file: "/shared/logs/openclaw.log",
-    consoleLevel: "info",
-    consoleStyle: "json",
-    redactSensitive: "tools",
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": false
+      }
+    }
   },
-
-  // ------------------------------------------------------------
-  // Channels — Telegram only (CEO ↔ Chief Secretary 1:1)
-  // ------------------------------------------------------------
-  channels: {
-    telegram: {
-      enabled: true,
-      botToken: "${TELEGRAM_BOT_TOKEN}",
-
-      // Security: ONLY the CEO can interact with the bot.
-      // dmPolicy "allowlist" = drop all DMs not in allowFrom.
-      dmPolicy: "allowlist",
-      allowFrom: ["${CEO_TELEGRAM_ID}"],
-
-      historyLimit: 20,
-      mediaMaxMb: 10,
-    },
-  },
-
-  // ------------------------------------------------------------
-  // Bindings: route Telegram → Chief Secretary agent only.
-  // Team agents are internal — they receive tasks via sessions_send.
-  // ------------------------------------------------------------
-  bindings: [
+  "bindings": [
     {
-      agentId: "chief-secretary",
-      match: { channel: "telegram" },
-    },
+      "agentId": "chief-secretary",
+      "match": {
+        "channel": "telegram"
+      }
+    }
   ],
-
-  // ------------------------------------------------------------
-  // Agents: 1 Chief Secretary (dual-mode) + 1 Chief Secretary Pro + 6 Team Agents
-  // Each agent has its own workspace (separate SOUL.md per agent).
-  //
-  // Model assignments:
-  //   Chief Secretary     : flash  (fast routing + daily comms + complexity detection)
-  //   Chief Secretary Pro : pro    (strategic analysis engine — internal only, no Telegram)
-  //   Planning PM         : pro    (complex strategy/research)
-  //   Marketer            : flash  (ad data is mostly structured)
-  //   Designer            : flash  (visual guidance / creative briefs)
-  //   Finance Manager     : pro    (accurate financial analysis)
-  //   CS Manager          : flash  (templated customer responses)
-  //   Asset Manager       : pro    (financial risk — always pro, no flash fallback on analysis)
-  //
-  // Dual-model routing:
-  //   Simple tasks  → chief-secretary (flash) handles directly  [1~3s]
-  //   Complex tasks → chief-secretary detects → routes to chief-secretary-pro (pro) → relays to CEO  [30~55s]
-  // ------------------------------------------------------------
-  agents: {
-    defaults: {
-      // Default Flash model — overridden per-agent below.
-      model: {
-        primary: "${LLM_FLASH_MODEL}",
-        fallbacks: [],
-      },
-      sandbox: {
-        mode: "off",
-      },
+  "messages": {
+    "queue": {
+      "mode": "collect",
+      "debounceMs": 800,
+      "cap": 10
     },
-
-    list: [
-      // --------------------------------------------------------
-      // 1. Chief Secretary (비서실장) — default agent, faces the CEO.
-      // --------------------------------------------------------
-      {
-        id: "chief-secretary",
-        default: true,
-        name: "비서실장",
-        workspace: "/home/node/.openclaw/workspace/chief-secretary",
-        model: {
-          primary: "${LLM_FLASH_MODEL}",
-          fallbacks: [],
-        },
-        identity: {
-          name: "비서실장",
-          emoji: "🤵",
-        },
-        // Allow chief-secretary to spawn all team agents as sub-sessions.
-        // sessions_spawn is the correct tool for calling internal agents
-        // that don't have persistent Telegram-bound sessions.
-        subagents: {
-          allowAgents: ["chief-secretary-pro", "planning-pm", "marketer", "designer", "finance-manager", "cs-manager", "asset-manager"],
-        },
-      },
-
-      // --------------------------------------------------------
-      // 1b. Chief Secretary Pro (비서실장-Pro) — Internal strategic analysis engine.
-      // NOT bound to Telegram. Receives tasks from chief-secretary via sessions_send.
-      // Uses Pro model for deep reasoning, strategic judgment, and multi-agent synthesis.
-      // --------------------------------------------------------
-      {
-        id: "chief-secretary-pro",
-        name: "비서실장-Pro",
-        workspace: "/home/node/.openclaw/workspace/chief-secretary-pro",
-        model: {
-          primary: "${LLM_PRO_MODEL}",
-          fallbacks: ["${LLM_FLASH_MODEL}"],
-        },
-        identity: {
-          name: "비서실장-Pro",
-          emoji: "🧠",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 2. Planning PM (기획PM)
-      // --------------------------------------------------------
-      {
-        id: "planning-pm",
-        name: "기획PM",
-        workspace: "/home/node/.openclaw/workspace/planning-pm",
-        model: {
-          primary: "${LLM_PRO_MODEL}",
-          fallbacks: ["${LLM_FLASH_MODEL}"],
-        },
-        identity: {
-          name: "기획PM",
-          emoji: "📋",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 3. Marketer (마케터)
-      // --------------------------------------------------------
-      {
-        id: "marketer",
-        name: "마케터",
-        workspace: "/home/node/.openclaw/workspace/marketer",
-        model: {
-          primary: "${LLM_FLASH_MODEL}",
-          fallbacks: [],
-        },
-        identity: {
-          name: "마케터",
-          emoji: "📣",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 4. Designer (디자이너)
-      // --------------------------------------------------------
-      {
-        id: "designer",
-        name: "디자이너",
-        workspace: "/home/node/.openclaw/workspace/designer",
-        model: {
-          primary: "${LLM_FLASH_MODEL}",
-          fallbacks: [],
-        },
-        identity: {
-          name: "디자이너",
-          emoji: "🎨",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 5. Finance Manager (재무담당)
-      // --------------------------------------------------------
-      {
-        id: "finance-manager",
-        name: "재무담당",
-        workspace: "/home/node/.openclaw/workspace/finance-manager",
-        model: {
-          primary: "${LLM_PRO_MODEL}",
-          fallbacks: ["${LLM_FLASH_MODEL}"],
-        },
-        identity: {
-          name: "재무담당",
-          emoji: "💰",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 6. CS Manager (CS담당)
-      // --------------------------------------------------------
-      {
-        id: "cs-manager",
-        name: "CS담당",
-        workspace: "/home/node/.openclaw/workspace/cs-manager",
-        model: {
-          primary: "${LLM_FLASH_MODEL}",
-          fallbacks: [],
-        },
-        identity: {
-          name: "CS담당",
-          emoji: "🎧",
-        },
-      },
-
-      // --------------------------------------------------------
-      // 7. Asset Manager (자산관리사) — Internal VIP investment agent.
-      // NOT bound to Telegram. Receives tasks from chief-secretary via sessions_send.
-      // Uses Pro model for financial analysis. Bybit API to be added later by CEO.
-      // --------------------------------------------------------
-      {
-        id: "asset-manager",
-        name: "자산관리사",
-        workspace: "/home/node/.openclaw/workspace/asset-manager",
-        model: {
-          primary: "${LLM_PRO_MODEL}",
-          fallbacks: ["${LLM_FLASH_MODEL}"],
-        },
-        identity: {
-          name: "자산관리사",
-          emoji: "📈",
-        },
-      },
-    ],
+    "ackReaction": "👀",
+    "ackReactionScope": "all"
   },
-
-  // ------------------------------------------------------------
-  // Session management — per-sender DM scope, no reset (pairing persists for cron reliability)
-  // historyLimit: 20 in telegram config already caps LLM context per request.
-  // ------------------------------------------------------------
-  session: {
-    scope: "per-sender",
-    dmScope: "per-channel-peer",
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
   },
-
-  // ------------------------------------------------------------
-  // Tools — disable built-in web_search (Brave-only).
-  // All web searches go through the tavily-search ClawHub skill instead.
-  // ------------------------------------------------------------
-  tools: {
-    web: {
-      search: {
-        enabled: false,
-      },
-    },
+  "session": {
+    "scope": "per-sender",
+    "dmScope": "per-channel-peer"
   },
-
-  // ------------------------------------------------------------
-  // Messages — Korean UX polish
-  // ------------------------------------------------------------
-  messages: {
-    ackReaction: "👀",
-    ackReactionScope: "all",
-    queue: {
-      mode: "collect",
-      debounceMs: 800,
-      cap: 10,
-    },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "allowFrom": [
+        "${CEO_TELEGRAM_ID}"
+      ],
+      "groupPolicy": "allowlist",
+      "historyLimit": 20,
+      "streamMode": "partial",
+      "mediaMaxMb": 10
+    }
   },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.2.17",
+    "lastTouchedAt": "2026-02-25T01:53:11.241Z"
+  }
 }
