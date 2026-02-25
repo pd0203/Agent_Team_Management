@@ -1,8 +1,9 @@
 FROM python:3.12-slim
 
-# 한국어 폰트(NotoSansCJK) + matplotlib 의존 라이브러리 설치
+# 한국어 폰트(NotoSansCJK) + 이모지 폰트(NotoColorEmoji) + matplotlib 의존 라이브러리 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
+    fonts-noto-color-emoji \
     libfreetype6 \
     && rm -rf /var/lib/apt/lists/*
 

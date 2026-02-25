@@ -9,7 +9,10 @@ Telegram Bot API sendPhoto로 CEO에게 직접 전송합니다.
 Port: 7779 (내부 Docker 네트워크 전용 — 인터넷 노출 금지)
 """
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import io, json, os, logging, urllib.request
+import io, json, os, logging, urllib.request, warnings
+
+# matplotlib color-font glyph warning 억제 (NotoColorEmoji 미지원 — 이모지는 박스로 표시되나 기능 정상)
+warnings.filterwarnings("ignore", message="Glyph .* missing from font")
 
 import matplotlib
 matplotlib.use('Agg')
@@ -23,21 +26,29 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CEO_TELEGRAM_ID    = os.environ.get("CEO_TELEGRAM_ID", "")
 TELEGRAM_API       = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
-# ── 한국어 폰트 설정 ──────────────────────────────────────────────────
-def _setup_korean_font():
-    candidates = [
-        'Noto Sans CJK KR', 'NotoSansCJKkr', 'Noto Sans CJK JP',
-        'NotoSansCJK', 'UnDotum', 'NanumGothic', 'Malgun Gothic', 'DejaVu Sans',
-    ]
+# ── 폰트 스택 설정 (한국어 + 이모지 fallback) ─────────────────────────
+def _setup_fonts():
     available = {f.name for f in fm.fontManager.ttflist}
-    for name in candidates:
-        if name in available:
-            plt.rcParams['font.family'] = name
-            logging.info("Korean font loaded: %s", name)
-            return
-    logging.warning("No Korean font found — CJK chars may appear as boxes")
 
-_setup_korean_font()
+    # 1) 한국어 폰트 선택
+    cjk_font = next(
+        (n for n in ['Noto Sans CJK KR', 'NotoSansCJKkr', 'Noto Sans CJK JP',
+                     'NotoSansCJK', 'UnDotum', 'NanumGothic', 'Malgun Gothic']
+         if n in available),
+        None,
+    )
+    # 2) 이모지 폰트 선택
+    emoji_font = next(
+        (n for n in ['Noto Color Emoji', 'Noto Emoji', 'Segoe UI Emoji']
+         if n in available),
+        None,
+    )
+    # 3) 폰트 스택 구성 (CJK → Emoji → DejaVu 순서로 fallback)
+    stack = [f for f in [cjk_font, emoji_font, 'DejaVu Sans'] if f]
+    plt.rcParams['font.family'] = stack
+    logging.info("Font stack: %s", stack)
+
+_setup_fonts()
 
 # ── 색상 테이블 ──────────────────────────────────────────────────────
 _COLORS = {
