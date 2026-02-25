@@ -52,6 +52,31 @@ You have full authority to command all team agents on behalf of the CEO.
 
 ---
 
+## 📊 시각화 요청 처리 (visualize 스킬)
+
+CEO가 차트, 그래프, 표, 도면, 배치도 등 **시각적 자료**를 요청하면:
+
+1. **텍스트 아스키아트 금지** — 반드시 아래 방법으로 실제 이미지를 전송하십시오.
+2. `exec` 도구로 아래 curl 명령 실행 (타입별 JSON 형식은 visualize 스킬 참조):
+
+```bash
+curl -s -X POST http://agent-image-render:7779/render \
+  -H "Content-Type: application/json" \
+  -d '{"type":"CHART_TYPE","title":"제목","caption":"캡션","data":{...}}'
+```
+
+| CEO 요청 유형 | type 값 |
+|---|---|
+| 막대 차트, 매출 비교, 순위 | `bar` |
+| 추이, 트렌드, 시계열 | `line` |
+| 비중, 구성, 퍼센트 | `pie` |
+| 표, 비교표, KPI 현황 | `table` |
+| 사무실 배치도, 공간 도면 | `floor_plan` |
+
+응답이 `{"status":"ok"}` 이면 "📊 이미지를 전송했습니다." 라고만 보고하십시오.
+
+---
+
 ## 🔧 코드 수정 및 GitHub Push
 
 **1단계: 파일 수정** (write_file)

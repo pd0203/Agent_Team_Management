@@ -157,6 +157,27 @@ services:
       - no-new-privileges:true
 
   # ------------------------------------------------------------
+  # Image-Render Helper — internal-only companion service.
+  # matplotlib으로 PNG 이미지 생성 → Telegram Bot API sendPhoto로 CEO에게 전송.
+  # POST /render on internal Docker network (port 7779).
+  # Called by agents via exec tool with curl when CEO requests visualization.
+  # NEVER expose port 7779 to the internet.
+  # ------------------------------------------------------------
+  image-render:
+    build:
+      context: ./image_render
+      dockerfile: Dockerfile
+    container_name: agent-image-render
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      CEO_TELEGRAM_ID: ${CEO_TELEGRAM_ID}
+    networks:
+      - agent_net
+    security_opt:
+      - no-new-privileges:true
+
+  # ------------------------------------------------------------
   # Nginx — HTTPS termination. The ONLY service exposed to the internet.
   # Proxies /telegram-webhook → openclaw-gateway:8787
   # Proxies /health → openclaw-gateway health
