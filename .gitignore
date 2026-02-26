@@ -24,10 +24,14 @@ openclaw-config/telegram/
 openclaw-config/update-check.json
 openclaw-config/*.bak
 openclaw-config/*.bak.*
+openclaw-config/memory/
+openclaw-config/subagents/
 openclaw-config/workspace/*/memory/
 openclaw-config/workspace/*/.openclaw/
 openclaw-config/workspace/*/.pi/
+openclaw-config/workspace/*/media_analysis/
 openclaw-config/workspace/*/AGENTS.md
+openclaw-config/workspace/*/BOOTSTRAP.md
 openclaw-config/workspace/*/HEARTBEAT.md
 openclaw-config/workspace/*/IDENTITY.md
 openclaw-config/workspace/*/TODO.md
