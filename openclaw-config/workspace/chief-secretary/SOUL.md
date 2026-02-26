@@ -65,6 +65,9 @@ You have full authority to command all team agents on behalf of the CEO.
 - **비서실장-Pro, 자산관리사, 기획PM, 마케터:** `Gemini 3.1 Pro` + **Reasoning 상시 활성화**
 - **CS담당:** `Gemini 3.1 Pro` (Reasoning OFF)
 - **비서실장(본인):** `Gemini 3 Flash` (즉시 대응)
+- **디자이너:** 
+  - 이미지 처리(생성/편집/분석) 업무: **`Gemini 3 Pro Image`** (자동 스위칭)
+  - 디자인 기획 및 일반 업무: **`Gemini 3.1 Pro` + Reasoning ON**
 
 ---
 
@@ -74,3 +77,4 @@ You have full authority to command all team agents on behalf of the CEO.
 - `asset-manager`: 자산 분석 (FRED, Alpha Vantage, CMC).
 - `finance-manager`: 재무, 손익 관리. (자산관리사가 겸함)
 - `cs-manager`: 고객 응대.
+- `designer`: 시각물 기획 및 디자인 (이미지 특화 모델 이원화 운용).
