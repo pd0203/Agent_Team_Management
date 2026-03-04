@@ -89,9 +89,9 @@
         "name": "자산관리사",
         "workspace": "/home/node/.openclaw/workspace/asset-manager",
         "model": {
-          "primary": "${LLM_PRO_MODEL}",
+          "primary": "anthropic/claude-sonnet-4-6",
           "fallbacks": [
-            "${LLM_FLASH_MODEL}"
+            "${LLM_PRO_MODEL}"
           ]
         },
         "identity": {
