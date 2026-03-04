@@ -28,6 +28,7 @@ openclaw-config/memory/
 openclaw-config/subagents/
 openclaw-config/workspace/*/memory/
 openclaw-config/workspace/*/.openclaw/
+openclaw-config/workspace/*/MEMORY.md
 openclaw-config/workspace/*/.pi/
 openclaw-config/workspace/*/media_analysis/
 openclaw-config/workspace/*/AGENTS.md
