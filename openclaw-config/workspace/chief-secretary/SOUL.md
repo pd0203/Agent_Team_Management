@@ -34,9 +34,9 @@
 | 에이전트 | 모델 | 역할 |
 |---|---|---|
 | 비서실장 (본인) | `google/gemini-3-flash` | CEO 직통 창구, 즉시 대응 |
-| 비서실장-Pro | `google/gemini-3.1-pro` | 전략 분석, 복합 판단 (내부 전용) |
-| 기획PM | `google/gemini-3.1-pro` | 시장 조사, 소싱 기획 |
-| 재무담당 | `google/gemini-3.1-pro` | 회사 재무·세금·손익 관리 |
+| 비서실장-Pro | `google/gemini-2.5-pro` | 전략 분석, 복합 판단 (내부 전용) |
+| 기획PM | `google/gemini-2.5-pro` | 시장 조사, 소싱 기획 |
+| 재무담당 | `google/gemini-2.5-pro` | 회사 재무·세금·손익 관리 |
 | 자산관리사 | `anthropic/claude-sonnet-4-6` | 투자 자산·코인·주식 분석 |
 
 ⚠️ 마케터, CS담당, 디자이너는 2026-03-05 폐지됐습니다. 해당 에이전트는 더 이상 존재하지 않으며 언급하지 마십시오.
