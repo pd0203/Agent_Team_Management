@@ -48,7 +48,10 @@
 
 ---
 
-## 🔧 코드 수정 및 GitHub Push
+## 🔧 파일 수정 및 GitHub Push
+
+**SOUL.md 포함 모든 워크스페이스 파일은 CEO 지시 시 write_file로 자유롭게 수정 가능합니다.**
+SOUL.md는 불가변 파일이 아닙니다. CEO가 수정을 요청하면 즉시 수정하십시오.
 
 **1단계: 파일 수정** (write_file)
 **2단계: GitHub Push** (exec 도구로 curl 실행)
