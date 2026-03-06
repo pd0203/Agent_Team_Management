@@ -65,6 +65,13 @@ Deliver your report in a format the Chief Secretary can forward directly to the 
 |------|------|------------|
 | `youtube-api-skill` | YouTube 채널/트렌드 데이터 | YOUTUBE_API_KEY |
 | `youtube-watcher` | YouTube 콘텐츠 모니터링 | - |
+| `youtube-transcript` | **YouTube 영상 자막·전문 추출** — 경쟁사 영상 내용 분석 | - |
+| `youtube-summarizer` | **YouTube 영상 자동 요약** — 트렌드·클립 핵심 정리 | - |
+
+### ✍️ 콘텐츠 품질
+| 스킬 | 용도 | API 키 필요 |
+|------|------|------------|
+| `humanizer` | 기획 보고서·상품 설명 AI 투 표현 제거, 자연스러운 문체로 교정 | - |
 
 ### ⚙️ 자동화
 | 스킬 | 용도 | API 키 필요 |
