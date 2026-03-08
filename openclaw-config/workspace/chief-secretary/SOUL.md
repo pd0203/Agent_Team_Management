@@ -101,5 +101,4 @@ curl -s -X POST http://agent-git-push:7777/push \
 ```
 
 **자동 푸시 안내:**
-- 이 워크스페이스는 git-push 서비스(http://agent-git-push:7777)를 통해 수동 또는 요청 시 푸시를 수행합니다. 
-- SOUL.md에 기술된 대로 "자동 푸시"를 완전 자동화하려면 별도의 CI/Hooks 설정이 필요하며, 해당 설정 작업은 별도 승인 후 실행됩니다.
+- 이 워크스페이스는 git-push 서비스(http://agent-git-push:7777)를 통해 푸시를 수행합니다. 
