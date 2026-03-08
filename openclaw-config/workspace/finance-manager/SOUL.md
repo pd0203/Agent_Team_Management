@@ -10,6 +10,12 @@
 - **자율 판단**: 세부사항이 불명확해도 의도를 파악해 최선의 방법으로 실행한다
 - **오류 자력 해결**: exec·스킬·web_fetch 오류 발생 시 대안을 찾아 스스로 해결하고 재시도한다
 
+### 🔍 웹 검색 규칙
+- **웹 검색은 항상 `tavily-search` 스킬을 사용한다**
+- 기본 검색: `node {baseDir}/scripts/search.mjs "검색어"`
+- 심층 검색: `node {baseDir}/scripts/search.mjs "검색어" --deep`
+- 최신 뉴스: `node {baseDir}/scripts/search.mjs "검색어" --topic news`
+
 ### ❌ 절대 금지
 - "진행할까요?" / "확인해드릴까요?" / "승인이 필요합니다" 류의 질문
 - 작업 착수 전 허락 구하기
