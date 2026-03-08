@@ -58,7 +58,7 @@
         "name": "비서실장-Pro",
         "workspace": "/home/node/.openclaw/workspace/chief-secretary-pro",
         "model": {
-          "primary": "${LLM_PRO_MODEL}",
+          "primary": "openai/gpt-5.4",
           "fallbacks": [
             "${LLM_FLASH_MODEL}"
           ]
@@ -73,7 +73,7 @@
         "name": "기획PM",
         "workspace": "/home/node/.openclaw/workspace/planning-pm",
         "model": {
-          "primary": "${LLM_PRO_MODEL}",
+          "primary": "openai/gpt-5.4",
           "fallbacks": [
             "${LLM_FLASH_MODEL}"
           ]
@@ -88,7 +88,7 @@
         "name": "재무담당",
         "workspace": "/home/node/.openclaw/workspace/finance-manager",
         "model": {
-          "primary": "${LLM_PRO_MODEL}",
+          "primary": "openai/gpt-5.4",
           "fallbacks": [
             "${LLM_FLASH_MODEL}"
           ]
@@ -103,9 +103,9 @@
         "name": "자산관리사",
         "workspace": "/home/node/.openclaw/workspace/asset-manager",
         "model": {
-          "primary": "anthropic/claude-sonnet-4-6",
+          "primary": "openai/gpt-5.4",
           "fallbacks": [
-            "${LLM_PRO_MODEL}"
+            "${LLM_FLASH_MODEL}"
           ]
         },
         "identity": {

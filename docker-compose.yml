@@ -54,7 +54,11 @@ services:
   # Telegram webhook listener: port 8787 (internal only).
   # ------------------------------------------------------------
   openclaw-gateway:
-    image: ghcr.io/openclaw/openclaw:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw
+      args:
+        BASE_IMAGE: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
     container_name: openclaw-gateway
     restart: unless-stopped
     environment:
